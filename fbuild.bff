@@ -1,0 +1,75 @@
+.VSBasePath                 = 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community'
+.VSVersion                  = '14.16.27023'
+.VCTools                    = 'VC\Tools\MSVC\$VSVersion$'
+
+.WindowsSDKBasePath         = 'C:\Program Files (x86)\Windows Kits\10'
+.WindowsSDKVersion          = '10.0.17763.0'
+.WindowsLibPath             = '$WindowsSDKBasePath$\Lib\$WindowsSDKVersion$\um\x64'
+.WindowsIncludePath         = '$WindowsSDKBasePath$\Include\$WindowsSDKVersion$\um'
+.WindowsUcrtLibPath         = '$WindowsSDKBasePath$\Lib\$WindowsSDKVersion$\ucrt\x64'
+.WindowsUcrtIncludePath     = '$WindowsSDKBasePath$\Include\$WindowsSDKVersion$\ucrt'
+
+Settings
+{
+    .Environment = {
+                        "PATH=$VSBasePath$\Common7\IDE\;$VSBasePath$\$VCTools$\bin\Hostx64\x64\",
+                        "TMP=C:\Windows\Temp",
+                        "SystemRoot=C:\Windows"
+    }
+}
+
+.Compiler = '$VSBasePath$\$VCTools$\bin\Hostx64\x64\cl.exe'
+.CompilerOptions    = '"%1"' // Input
+                    + ' /Fo"%2"' // Output
+                    + ' /Z7' // Debug format (in .obj)
+                    + ' /c' // Compile only
+                    + ' /nologo' // No compiler spam
+                    + ' /W4' // Warning level 4
+                    + ' /WX' // Warnings as errors
+
+.Linker         = '$VSBasePath$\$VCTools$\bin\Hostx64\x64\link.exe'
+.LinkerOptions  = ' /OUT:"%2"' // Output
+                + ' "%1"' // Input
+                + ' /WX' // Warnings as errors
+                + ' /NOLOGO' // No linker spam
+                + ' /DEBUG' // Keep debug info when linking
+
+.LibPaths   = ' /LIBPATH:"$VSBasePath$\$VCTools$\lib\x64"'
+            + ' /LIBPATH:"$WindowsLibPath$"'
+            + ' /LIBPATH:"$WindowsUcrtLibPath$"'
+
+.LinkerOptions + .LibPaths
+
+.DLLOptions =
+[
+    .CompilerOptions    + ' /DLL /MT'
+    .LinkerOptions      + ' /DLL'
+]
+
+.Librarian          = '$VSBasePath$\$VCTools$\bin\Hostx64\x64\lib.exe'
+.LibrarianOptions   = '/WX /NOLOGO /OUT:"%2" "%1"'
+
+.BaseIncludePaths   = ' /I"./"'
+                    + ' /I"$VSBasePath$\$VCTools$\include"'
+                    + ' /I"$WindowsIncludePath$"'
+                    + ' /I"$WindowsUcrtIncludePath$"'
+
+.CompilerOptions + .BaseIncludePaths
+
+ObjectList( 'HelloWorld-Lib' )
+{
+    .CompilerInputPath  = '\'
+    .CompilerOutputPath = 'Out\'
+}
+
+Executable( 'HelloWorld' )
+{
+    .Libraries          = { "HelloWorld-Lib" }
+    .LinkerOutput       = 'Out\HelloWorld.exe'
+    .LinkerOptions      + ' libcmt.lib'     // Std Lib (Multi-Threaded, Static, Release)
+                        + ' kernel32.lib'   // Kernel functions
+}
+
+// All
+//------------------------------------------------------------------------------
+Alias( 'all' ) { .Targets = { 'HelloWorld' } }
